@@ -54,6 +54,12 @@ public class ItemService {
                 .orElseThrow(() -> new EntityNotFoundException("Item con ID " + id + " no encontrado"));
     }
 
+    public Item aplicarDescuento(Item item, Double porcentaje) {
+        double nuevoPrecio = item.getPrecio() * (1 - porcentaje / 100);
+        item.setPrecio(nuevoPrecio);
+        return item;
+    }
+
     private void validarReglas(Item item) {
         if (item.getPrecio() == null || item.getPrecio() <= 0) {
             throw new IllegalArgumentException("El precio debe ser mayor a 0");
