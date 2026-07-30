@@ -90,4 +90,11 @@ class ItemServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("entre 0 y 100");
     }
+
+    @Test
+    void aplicarDescuento_conPorcentajeCero_debeMantenerElPrecioOriginal() {
+        item.setPrecio(100.0);
+        var resultado = service.aplicarDescuento(item, 0.0);
+        assertThat(resultado.getPrecio()).isEqualTo(100.0);
+    }
 }
