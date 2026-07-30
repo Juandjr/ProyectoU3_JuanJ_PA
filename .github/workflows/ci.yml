@@ -1,0 +1,56 @@
+name: ci-cd
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Run verify
+        run: mvn -B verify
+
+      - name: Upload JaCoCo
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to registry
+        if: ${{ secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_TOKEN != '' }}
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${{ secrets.REGISTRY_URL }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+
+      - name: Build image
+        run: docker build -t unidad2:${{ github.sha }} .
+
+      - name: Tag and push image
+        if: ${{ secrets.REGISTRY_URL != '' && secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_TOKEN != '' }}
+        run: |
+          docker tag unidad2:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ secrets.REGISTRY_IMAGE }}:${{ github.sha }}
+          docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.REGISTRY_IMAGE }}:${{ github.sha }}
+
+  deploy:
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - run: echo "Despliegue posterior al CI exitoso. Conecta este paso a Render/Railway o despliegue por registry."
