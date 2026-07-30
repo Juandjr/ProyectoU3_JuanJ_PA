@@ -35,15 +35,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log in to registry
-        if: ${{ secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_TOKEN != '' }}
-        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${{ secrets.REGISTRY_URL }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
-
       - name: Build image
         run: docker build -t unidad2:${{ github.sha }} .
 
+      - name: Log in to registry
+        if: env.REGISTRY_USERNAME != '' && env.REGISTRY_TOKEN != ''
+        env:
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login ${{ secrets.REGISTRY_URL }} -u "${{ secrets.REGISTRY_USERNAME }}" --password-stdin
+
       - name: Tag and push image
-        if: ${{ secrets.REGISTRY_URL != '' && secrets.REGISTRY_USERNAME != '' && secrets.REGISTRY_TOKEN != '' }}
+        if: env.REGISTRY_URL != '' && env.REGISTRY_USERNAME != '' && env.REGISTRY_TOKEN != ''
+        env:
+          REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
+          REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
         run: |
           docker tag unidad2:${{ github.sha }} ${{ secrets.REGISTRY_URL }}/${{ secrets.REGISTRY_IMAGE }}:${{ github.sha }}
           docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.REGISTRY_IMAGE }}:${{ github.sha }}
