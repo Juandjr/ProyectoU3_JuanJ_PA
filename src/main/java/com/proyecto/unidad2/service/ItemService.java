@@ -55,7 +55,10 @@ public class ItemService {
     }
 
     public Item aplicarDescuento(Item item, Double porcentaje) {
-        double nuevoPrecio = item.getPrecio() * (1 - porcentaje / 100);
+        if (porcentaje == null || porcentaje < 0 || porcentaje > 100) {
+            throw new IllegalArgumentException("El porcentaje de descuento debe estar entre 0 y 100");
+        }
+        double nuevoPrecio = Math.round(item.getPrecio() * (1 - porcentaje / 100.0) * 100.0) / 100.0;
         item.setPrecio(nuevoPrecio);
         return item;
     }

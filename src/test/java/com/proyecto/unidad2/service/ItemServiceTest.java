@@ -82,4 +82,12 @@ class ItemServiceTest {
         var resultado = service.aplicarDescuento(item, 20.0);
         assertThat(resultado.getPrecio()).isEqualTo(80.0);
     }
+
+    @Test
+    void aplicarDescuento_debeLanzarExcepcionSiPorcentajeInvalido() {
+        item.setPrecio(100.0);
+        assertThatThrownBy(() -> service.aplicarDescuento(item, 150.0))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("entre 0 y 100");
+    }
 }
