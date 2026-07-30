@@ -75,4 +75,11 @@ class ItemServiceTest {
         verify(repository).findById(1L);
         verify(repository).save(any(Item.class));
     }
+
+    @Test
+    void aplicarDescuento_debeReducirElPrecioSegunElPorcentaje() {
+        item.setPrecio(100.0);
+        var resultado = service.aplicarDescuento(item, 20.0);
+        assertThat(resultado.getPrecio()).isEqualTo(80.0);
+    }
 }
