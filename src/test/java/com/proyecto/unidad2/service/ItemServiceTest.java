@@ -35,28 +35,36 @@ class ItemServiceTest {
 
     @Test
     void listar_debeRetornarItemsDelRepositorio() {
+        // Arrange
         when(repository.findAll()).thenReturn(List.of(item));
 
+        // Act
         var resultado = service.listar();
 
+        // Assert
         assertThat(resultado).hasSize(1);
         verify(repository).findAll();
     }
 
     @Test
     void crear_debePersistirCuandoCumpleReglas() {
+        // Arrange
         when(repository.save(any(Item.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        // Act
         var resultado = service.crear(item);
 
+        // Assert
         assertThat(resultado.getTitulo()).isEqualTo("Zelda");
         verify(repository).save(item);
     }
 
     @Test
     void crear_debeFallarSiElPrecioNoEsValido() {
+        // Arrange
         item.setPrecio(0.0);
 
+        // Act & Assert
         assertThatThrownBy(() -> service.crear(item))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("mayor a 0");
@@ -66,11 +74,14 @@ class ItemServiceTest {
 
     @Test
     void actualizar_debeModificarCamposExistentes() {
+        // Arrange
         when(repository.findById(1L)).thenReturn(Optional.of(Item.builder().id(1L).titulo("Old").plataforma("PC").precio(10.0).build()));
         when(repository.save(any(Item.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        // Act
         var resultado = service.actualizar(1L, item);
 
+        // Assert
         assertThat(resultado.getTitulo()).isEqualTo("Zelda");
         verify(repository).findById(1L);
         verify(repository).save(any(Item.class));
@@ -78,14 +89,22 @@ class ItemServiceTest {
 
     @Test
     void aplicarDescuento_debeReducirElPrecioSegunElPorcentaje() {
+        // Arrange
         item.setPrecio(100.0);
+
+        // Act
         var resultado = service.aplicarDescuento(item, 20.0);
+
+        // Assert
         assertThat(resultado.getPrecio()).isEqualTo(80.0);
     }
 
     @Test
     void aplicarDescuento_debeLanzarExcepcionSiPorcentajeInvalido() {
+        // Arrange
         item.setPrecio(100.0);
+
+        // Act & Assert
         assertThatThrownBy(() -> service.aplicarDescuento(item, 150.0))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("entre 0 y 100");
@@ -93,8 +112,13 @@ class ItemServiceTest {
 
     @Test
     void aplicarDescuento_conPorcentajeCero_debeMantenerElPrecioOriginal() {
+        // Arrange
         item.setPrecio(100.0);
+
+        // Act
         var resultado = service.aplicarDescuento(item, 0.0);
+
+        // Assert
         assertThat(resultado.getPrecio()).isEqualTo(100.0);
     }
 }
